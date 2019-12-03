@@ -22,14 +22,18 @@ class WireSegment:
             return 0
 
 class Point:
-    def __init__(self, x, y):
+    def __init__(self, x, y, wire1 = None, wire2 = None, pathSum = None):
         self.x = x
         self.y = y
+        self.wire1 = wire1
+        self.wire2 = wire2
+        self.pathSum = pathSum
     def getManhattan(self):
         return abs(self.x) + abs(self.y)
 
 class WireSegment2:
-    def __init__(self, distance, direction, xorigin, yorigin):
+    def __init__(self, distance, direction, xorigin, yorigin, pathSumFromOrigin = 0):
+        self.pathSumFromOrigin = pathSumFromOrigin
         self.direction = direction
         self.left = xorigin
         self.right = xorigin
@@ -62,28 +66,48 @@ class WireSegment2:
         return True
 
     def getIntersect(self, otherSegment):
+        # If the two segments are parallel
+        x = None
+        y = None
         if(self.getOrientation() == otherSegment.getOrientation()):
             if(self.getOrientation() == 'H'):
                 if(self.left > 0 and otherSegment.left > 0):
-                    return Point(max(self.left, otherSegment.left), self.top)
+                    x = max(self.left, otherSegment.left)
+                    y = self.top
                 elif(self.right < 0 and otherSegment.right < 0):
-                    return Point(min(self.right, otherSegment.right), self.top)
+                    x = min(self.right, otherSegment.right)
+                    y = self.top
                 else:
-                    return Point(0, self.top)
-            if(self.getOrientation() == 'V'):
+                    x = 0
+                    y = self.top
+            elif(self.getOrientation() == 'V'):
                 if(self.top > 0 and otherSegment.top > 0):
-                    return Point(self.left, max(self.top, otherSegment.top))
+                    x = self.left
+                    y = max(self.top, otherSegment.top)
                 elif (self.bottom < 0 and otherSegment.bottom < 0):
-                    return Point(self.left, min(self.bottom, otherSegment.bottom))
+                    x = self.left
+                    y = min(self.bottom, otherSegment.bottom)
                 else:
-                    return Point(self.left, 0)
+                    x = self.left
+                    y = 0
+        # If the two segments have opposing orientations
+        elif(self.getOrientation() == 'H'):
+            x = otherSegment.left
+            y = self.top
+        elif(self.getOrientation() == 'V'):
+            x = self.left
+            y = otherSegment.top
+        return Point(x, y, self, otherSegment, self.getPathSumOfOrigin(x,y) + otherSegment.getPathSumOfOrigin(x,y))
 
-    
-        if(self.getOrientation() == 'H'):
-            return Point(otherSegment.left, self.top)
-        if(self.getOrientation() == 'V'):
-            return Point(self.left, otherSegment.top)
-        return None
+    def getPathSumOfOrigin(self, x, y):
+        if self.direction == 'U':
+            return self.pathSumFromOrigin + (self.bottom - y)
+        elif self.direction == 'D':
+            return self.pathSumFromOrigin + (y - self.top)
+        elif self.direction == 'L':
+            return self.pathSumFromOrigin + (self.right - x)
+        elif self.direction == 'R':
+            return self.pathSumFromOrigin + (x - self.left)
         
 
 
@@ -229,5 +253,42 @@ def main2():
                         nearest = newIntersect
     print('Nearest intersection is at (' + str(nearest.x) + ',' + str(nearest.y) + ') with a distance of ' + str(nearest.getManhattan()))
 
+def main3():
+    with open("input03.txt", "r") as fr:
+        wireStrings = []
+        output = csv.reader(fr) 
+        for row in output:
+            wireStrings.append(row)
+    wires = []
+    for i in range(len(wireStrings)):
+        xstart = 0
+        ystart = 0
+        pathSum = 0
+        wires.append([])
+        for j in range(len(wireStrings[i])):
+            wires[i].append(WireSegment2(int(wireStrings[i][j][1:]), wireStrings[i][j][0], xstart, ystart, pathSum))
+            if wires[i][j].direction == 'U':
+                ystart -= int(wireStrings[i][j][1:])
+            elif wires[i][j].direction == 'D':
+                ystart += int(wireStrings[i][j][1:])
+            elif wires[i][j].direction == 'L':
+                xstart -= int(wireStrings[i][j][1:])
+            elif wires[i][j].direction == 'R':
+                xstart += int(wireStrings[i][j][1:])
+            pathSum += int(wireStrings[i][j][1:])
+    # Now that the sets of wires exist, do stuff with them
+    nearest = None
+    for wire1segment in wires[0]:
+        for wire2segment in wires[1]:
+            if wire1segment.doesIntersect(wire2segment):
+                if wire1segment.getIntersect(wire2segment).getManhattan() > 0:
+                    newIntersect = wire1segment.getIntersect(wire2segment) 
+                    if nearest is None:
+                        nearest = newIntersect
+                    elif newIntersect.getManhattan() < nearest.getManhattan() and newIntersect.pathSum < nearest.pathSum:
+                        nearest = newIntersect
+    print('Nearest intersection is at (' + str(nearest.x) + ',' + str(nearest.y) + ') with a distance of ' + str(nearest.getManhattan()) + ' and a path sum of ' + str(nearest.pathSum))
+
 if __name__ == "__main__":
     main2()
+    main3()
