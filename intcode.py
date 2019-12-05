@@ -19,6 +19,10 @@ class MachineState:
         self.pointer = 0
         self.input = input
 
+    ##############
+    # Operations #
+    ##############
+
     def add(self): # 01
         toAdd1 = self.getParameter(1)
         toAdd2 = self.getParameter(2)
@@ -80,8 +84,12 @@ class MachineState:
         elif self.getModeOfParameter(3) == self.IMMEDIATE_MODE:
             self.intCodeArray[self.pointer + 3] = isEqual
         self.pointer += 4
+    
+    #########################################
+    # Functions for Reading Parameter State #
+    #########################################
 
-    def getParameter(self, parameterNumber): # 09
+    def getParameter(self, parameterNumber):
         modeDigit = 10 * (10**parameterNumber)
         if (self.intCodeArray[self.pointer] // modeDigit) % 10 == self.POSITION_MODE:
             return self.intCodeArray[self.intCodeArray[self.pointer + parameterNumber]]
