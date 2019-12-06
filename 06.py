@@ -91,9 +91,9 @@ def findPathToSan(orbitList):
             if child not in visitedQueue:
                 visitedQueue.append(child)
                 newPath = currentPath.copy()
-                newPath.append(child)
                 if child.parentOfSan():
                     return newPath
+                newPath.append(child)
                 orbitPathQueue.append(newPath)
     return None
 
