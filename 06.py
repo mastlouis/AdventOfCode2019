@@ -16,6 +16,18 @@ class Orbit:
             return 0
         return 1 + self.parent.getOrbitSum()
 
+    def parentOfSan(self):
+        for child in self.children:
+            if child.name == 'SAN':
+                return True
+        return False
+
+    def parentOfYou(self):
+        for child in self.children:
+            if child.name == 'YOU':
+                return True
+        return False
+
 def filterFunction(element, target = 'RMS'):
     return element.name == target
 
@@ -56,6 +68,38 @@ def countOrbits(orbitTreeList):
         sum += orbitTree.getOrbitSum()
     return sum
 
+def indexOfYou(orbitList):
+    for i in range(len(orbitList)):
+        if orbitList[i].parentOfYou():
+            return i
+
+def findPathToSan(orbitList):
+    orbitPathQueue = [[orbitList[indexOfYou(orbitList)]]]
+    visitedQueue = [orbitList[indexOfYou(orbitList)]]
+    while len(orbitPathQueue) > 0:
+        currentPath = orbitPathQueue.pop(0)
+        end = len(currentPath) - 1
+        if currentPath[end].parent is not None:
+            if currentPath[end].parent not in visitedQueue:
+                visitedQueue.append(currentPath[end].parent)
+                newPath = currentPath.copy()
+                newPath.append(currentPath[end].parent)
+                if currentPath[end].parent.parentOfSan():
+                    return newPath
+            orbitPathQueue.append(newPath)
+        for child in currentPath[end].children:
+            if child not in visitedQueue:
+                visitedQueue.append(child)
+                newPath = currentPath.copy()
+                newPath.append(child)
+                if child.parentOfSan():
+                    return newPath
+                orbitPathQueue.append(newPath)
+    return None
+
+
+                
+
 def part1():
     with open("input06.txt", "r") as fileReader:
         inputs = [item for item in fileReader.read().rstrip().split("\n")]
@@ -65,5 +109,16 @@ def part1():
     # Wrong guesses
     # 6509
 
+def part2():
+    with open("input06.txt", "r") as fileReader:
+        inputs = [item for item in fileReader.read().rstrip().split("\n")]
+    print(str(inputs))
+    orbitTreeList = orbitsToList(inputs)
+    truePath = findPathToSan(orbitTreeList)
+    print('true path ' + str(truePath) + ' with length ' + str(len(truePath)))
+
+    
+
 if __name__ == "__main__":
-    part1()
+    # part1()
+    part2()
